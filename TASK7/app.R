@@ -8,13 +8,18 @@
 #
 library(tidyverse)
 library(shiny)
-list_choices=list("Histogram Age","Histogram Mileage")
-list_choices2=list("Plot Age","Plot Mileage")
 
 library(Stat2Data)
 data(AccordPrice)
 Data=AccordPrice
-
+dataPanel <- tabPanel("Data",
+                     selectInput(
+                         inputId = "Select",
+                         label = "Select the Age",
+                         choices = Data %>% select(Age) %>% unique %>% arrange
+                     ),
+                     tableOutput("data")
+)
 # Define UI for application that draws a histogram
 ui <- fluidPage(navbarPage("Shiny app",
                            tabPanel("Histogram",
@@ -29,11 +34,9 @@ ui <- fluidPage(navbarPage("Shiny app",
                         "Number of bins:",
                         min = 1,
                         max = 50,
-                        value = 20),
+                        value = 20)
         
-            selectInput("select", label = h3("Plot by type of data"), 
-                        choices = list_choices,
-                        selected = 1)  
+            
             ),
         
         # Show a plot of the generated distribution
@@ -44,20 +47,8 @@ ui <- fluidPage(navbarPage("Shiny app",
                 )
             )
         ,
-    tabPanel("Plot",
-             fluidPage(
-                 sidebarLayout(sidebarPanel(
-                     selectInput("select2", label = h3("Plots"), 
-                                 choices = list_choices2,
-                                 selected = 1)
-                 ), mainPanel(
-                     h3("Plots"),
-                     plotOutput(outputId = "hello")
-                 )
-                 )))
-    
-    )
-)
+    dataPanel 
+))
 # Define server logic required to draw a histogram
 server <- function(input, output) {
     output$distPlot <- renderPlot({
@@ -68,7 +59,7 @@ server <- function(input, output) {
         # draw the histogram with the specified number of bins
         hist(x, breaks = bins, col = 'darkgray', border = 'white')
     })
-    
+    output$data<-renderTable(Data %>% filter(Age == input$Select))
  
     
 }
